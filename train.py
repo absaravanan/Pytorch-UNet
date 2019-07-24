@@ -10,22 +10,28 @@ from torch import optim
 
 from eval import eval_net
 from unet import UNet
+from unet import fast_unet
+
 from utils import get_ids, split_ids, split_train_val, get_imgs_and_masks, batch
+from torchsummary import summary
 
 def train_net(net,
               epochs=5,
               batch_size=1,
-              lr=0.1,
+              lr=3e-5,
               val_percent=0.05,
               save_cp=True,
               gpu=False,
               img_scale=0.5):
 
-    dir_img = 'data/train/'
-    dir_mask = 'data/train_masks/'
+    dir_img = '/home/ai/ai/data/coco/aadhaar_mask_augmented/train/images/'
+    dir_mask = '/home/ai/ai/data/coco/aadhaar_mask_augmented/train/annotations/'
     dir_checkpoint = 'checkpoints/'
 
+    
+
     ids = get_ids(dir_img)
+    # print ("ids length", ids)
     ids = split_ids(ids)
 
     iddataset = split_train_val(ids, val_percent)
@@ -62,6 +68,8 @@ def train_net(net,
         epoch_loss = 0
 
         for i, b in enumerate(batch(train, batch_size)):
+            # print ([i[0].shape for i in b])
+            # print ([i[1].shape for i in b])
             imgs = np.array([i[0] for i in b]).astype(np.float32)
             true_masks = np.array([i[1] for i in b])
 
@@ -108,7 +116,7 @@ def get_args():
     parser.add_option('-l', '--learning-rate', dest='lr', default=0.1,
                       type='float', help='learning rate')
     parser.add_option('-g', '--gpu', action='store_true', dest='gpu',
-                      default=False, help='use cuda')
+                      default=False, help='use cuda')   
     parser.add_option('-c', '--load', dest='load',
                       default=False, help='load file model')
     parser.add_option('-s', '--scale', dest='scale', type='float',
@@ -121,10 +129,13 @@ if __name__ == '__main__':
     args = get_args()
 
     net = UNet(n_channels=3, n_classes=1)
+    # net = fast_unet(n_channels=3, n_classes=1)
 
-    if args.load:
-        net.load_state_dict(torch.load(args.load))
-        print('Model loaded from {}'.format(args.load))
+    summary(net, (3, 224,224))
+
+    # if args.load:
+    #     net.load_state_dict(torch.load(args.load))
+    #     print('Model loaded from {}'.format(args.load))
 
     if args.gpu:
         net.cuda()

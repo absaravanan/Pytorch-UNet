@@ -6,12 +6,18 @@ import torch
 import torch.nn.functional as F
 
 from PIL import Image
+import numpy as np
+import cv2
 
 from unet import UNet
+from unet import fast_unet
+
 from utils import resize_and_crop, normalize, split_img_into_squares, hwc_to_chw, merge_masks, dense_crf
 from utils import plot_img_and_mask
 
 from torchvision import transforms
+import imutils
+import random
 
 def predict_img(net,
                 full_img,
@@ -27,24 +33,31 @@ def predict_img(net,
     img = resize_and_crop(full_img, scale=scale_factor)
     img = normalize(img)
 
-    left_square, right_square = split_img_into_squares(img)
+    # left_square, right_square = split_img_into_squares(img)
 
-    left_square = hwc_to_chw(left_square)
-    right_square = hwc_to_chw(right_square)
+    # left_square = hwc_to_chw(left_square)
+    # right_square = hwc_to_chw(right_square)
+    img = hwc_to_chw(img)
 
-    X_left = torch.from_numpy(left_square).unsqueeze(0)
-    X_right = torch.from_numpy(right_square).unsqueeze(0)
+    # X_left = torch.from_numpy(left_square).unsqueeze(0)
+    # X_right = torch.from_numpy(right_square).unsqueeze(0)
+
+    X_img = torch.from_numpy(img).unsqueeze(0)
     
     if use_gpu:
-        X_left = X_left.cuda()
-        X_right = X_right.cuda()
+        # X_left = X_left.cuda()
+        # X_right = X_right.cuda()
+        X_img = X_img.cuda()
 
     with torch.no_grad():
-        output_left = net(X_left)
-        output_right = net(X_right)
+        # output_left = net(X_left)
+        # output_right = net(X_right)
+        output = net(X_img)
 
-        left_probs = output_left.squeeze(0)
-        right_probs = output_right.squeeze(0)
+        # left_probs = output_left.squeeze(0)
+        # right_probs = output_right.squeeze(0)
+
+        probs = output.squeeze(0)
 
         tf = transforms.Compose(
             [
@@ -54,16 +67,20 @@ def predict_img(net,
             ]
         )
         
-        left_probs = tf(left_probs.cpu())
-        right_probs = tf(right_probs.cpu())
+        # left_probs = tf(left_probs.cpu())
+        # right_probs = tf(right_probs.cpu())
 
-        left_mask_np = left_probs.squeeze().cpu().numpy()
-        right_mask_np = right_probs.squeeze().cpu().numpy()
+        probs = tf(probs.cpu())
 
-    full_mask = merge_masks(left_mask_np, right_mask_np, img_width)
+        # left_mask_np = left_probs.squeeze().cpu().numpy()
+        # right_mask_np = right_probs.squeeze().cpu().numpy()
 
-    if use_dense_crf:
-        full_mask = dense_crf(np.array(full_img).astype(np.uint8), full_mask)
+        full_mask = probs.squeeze().cpu().numpy()
+
+    # full_mask = merge_masks(left_mask_np, right_mask_np, img_width)
+
+    # if use_dense_crf:
+    #     full_mask = dense_crf(np.array(full_img).astype(np.uint8), full_mask)
 
     return full_mask > out_threshold
 
@@ -117,15 +134,38 @@ def get_output_filenames(args):
 
     return out_files
 
+
+
 def mask_to_image(mask):
     return Image.fromarray((mask * 255).astype(np.uint8))
+
+
+def overlay_mask(img, mask):
+    # res = cv2.bitwise_and(img,img,mask = mask)
+    img[mask!=0] = (0,0,255)
+    # img = cv2.resize(img,(500, 350))
+    # cv2.imwrite("sample.jpg", img)
+    # cv2.imshow("1", img)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    return img
+
+
 
 if __name__ == "__main__":
     args = get_args()
     in_files = args.input
-    out_files = get_output_filenames(args)
+
+    image_dir = "/home/ai/Downloads/quality/Aadhaar_Quality_dataset/"
+    out_files = []
+    for r, d, f in os.walk(image_dir):
+        for file in f:
+            # print (os.path.join(r,file))
+            out_files.append(os.path.join(r,file))
+    # out_files = get_output_filenames(args)
 
     net = UNet(n_channels=3, n_classes=1)
+    # net = fast_unet(n_channels=3, n_classes=1)
 
     print("Loading model {}".format(args.model))
 
@@ -140,12 +180,20 @@ if __name__ == "__main__":
 
     print("Model loaded !")
 
-    for i, fn in enumerate(in_files):
+    for i, fn in enumerate(out_files):
         print("\nPredicting image {} ...".format(fn))
 
         img = Image.open(fn)
+        # angle = random.randint(0,359)
+        # img = img.rotate(angle)
+
+        print (img.size)
         if img.size[0] < img.size[1]:
             print("Error: image height larger than the width")
+
+        import time
+
+        start = time.time()
 
         mask = predict_img(net=net,
                            full_img=img,
@@ -154,13 +202,26 @@ if __name__ == "__main__":
                            use_dense_crf= not args.no_crf,
                            use_gpu=not args.cpu)
 
+        # mask = np.expand_dims(mask, axis=0)
+        # mask = np.transpose(mask, axes=[1, 2, 0])
+
+        print (time.time() - start )
+
         if args.viz:
+            
+            img = img.resize((img.size[1], img.size[1]))
+            img = np.array(img)
+            mask = np.float32(mask)
+            # print (img.shape)
+            # print (mask.shape)
+
             print("Visualizing results for image {}, close to continue ...".format(fn))
+            img = overlay_mask(img, mask)
+            # cv2.imwrite("tmp/"+os.path.basename(fn), img)
             plot_img_and_mask(img, mask)
 
         if not args.no_save:
             out_fn = out_files[i]
             result = mask_to_image(mask)
             result.save(out_files[i])
-
             print("Mask saved to {}".format(out_files[i]))

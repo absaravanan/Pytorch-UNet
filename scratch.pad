@@ -1,0 +1,2 @@
+python3 predict.py -i /home/ai/ai/data/coco/images/train2014/3aFQLpDvLyDWxbRNbX7YvUM2uI0q5YzGqRrAWTcQJHsO78qr0E.jpg \
+ --viz --no-save --cpu --model /home/ai/ai/abs/Pytorch-UNet/checkpoints/CP2.pth

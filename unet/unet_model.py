@@ -30,3 +30,10 @@ class UNet(nn.Module):
         x = self.up4(x, x1)
         x = self.outc(x)
         return F.sigmoid(x)
+
+
+if __name__ == "__main__":
+    net = UNet(n_channels=3, n_classes=1)
+    # net = fast_unet(n_channels=3, n_classes=1)
+
+    summary(net, (3, 224,224))
