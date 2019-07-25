@@ -185,7 +185,8 @@ if __name__ == "__main__":
 
         img = Image.open(fn)
         # angle = random.randint(0,359)
-        # img = img.rotate(angle)
+        angle = random.choice([0,90,180,270])
+        img = img.rotate(angle)
 
         print (img.size)
         if img.size[0] < img.size[1]:
@@ -194,6 +195,8 @@ if __name__ == "__main__":
         import time
 
         start = time.time()
+        img = img.resize((512, 512))
+
 
         mask = predict_img(net=net,
                            full_img=img,
@@ -209,7 +212,7 @@ if __name__ == "__main__":
 
         if args.viz:
             
-            img = img.resize((img.size[1], img.size[1]))
+            # img = img.resize((img.size[1], img.size[1]))
             img = np.array(img)
             mask = np.float32(mask)
             # print (img.shape)

@@ -21,8 +21,20 @@ def resize_and_crop(pilimg, scale=0.5, final_height=None, angle= 0):
     h = pilimg.size[1]
     newW = int(w * scale)
     newH = int(h * scale)
-    newW = 224
-    newH = 224
+    newW = 512
+    newH = 512
+    if not final_height:
+        diff = 0
+    else:
+        diff = newH - final_height
+
+    # pilimg = pilimg.rotate(angle)def resize_and_crop(pilimg, scale=0.5, final_height=None, angle= 0):
+    w = pilimg.size[0]
+    h = pilimg.size[1]
+    newW = int(w * scale)
+    newH = int(h * scale)
+    newW = 512
+    newH = 512
     if not final_height:
         diff = 0
     else:
@@ -31,7 +43,6 @@ def resize_and_crop(pilimg, scale=0.5, final_height=None, angle= 0):
     # pilimg = pilimg.rotate(angle)
     img = pilimg.resize((newW, newH))
     # img.show()
-
     img = img.crop((0, diff // 2, newW, newH - diff // 2))
     return np.array(img, dtype=np.float32)
 
@@ -60,13 +71,11 @@ def normalize(x):
 
 def merge_masks(img1, img2, full_w):
     h = img1.shape[0]
-
     new = np.zeros((h, full_w), np.float32)
     new[:, :full_w // 2 + 1] = img1[:, :full_w // 2 + 1]
     new[:, full_w // 2 + 1:] = img2[:, -(full_w // 2 - 1):]
 
     return new
-
 
 # credits to https://stackoverflow.com/users/6076729/manuel-lagunas
 def rle_encode(mask_image):
