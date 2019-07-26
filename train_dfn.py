@@ -118,7 +118,7 @@ def train_net(net,
 
             imgs = np.array([i[0] for i in b]).astype(np.float32)
             true_masks = np.array([i[1] for i in b])
-            cgts = np.array([i[1] for i in b])
+            cgts = np.array([i[2] for i in b])
 
             imgs = torch.from_numpy(imgs)
             true_masks = torch.from_numpy(true_masks)
