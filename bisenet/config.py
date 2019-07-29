@@ -53,18 +53,18 @@ def add_path(path):
 
 add_path(osp.join(C.root_dir, 'furnace'))
 
-from utils.pyt_utils import model_urls
+from bisenet.utils.pyt_utils import model_urls
 
 """Image Config"""
-C.num_classes = 19
+C.num_classes = 2
 C.background = -1
 C.image_mean = np.array([0.485, 0.456, 0.406])  # 0.485, 0.456, 0.406
 C.image_std = np.array([0.229, 0.224, 0.225])
 C.target_size = 1024
 C.image_height = 1024
 C.image_width = 1024
-C.num_train_imgs = 2975
-C.num_eval_imgs = 500
+C.num_train_imgs = 110000
+C.num_eval_imgs = 6000
 
 """ Settings for network, this would be different for each kind of model"""
 C.fix_bias = True
@@ -72,7 +72,7 @@ C.fix_bn = False
 C.sync_bn = True
 C.bn_eps = 1e-5
 C.bn_momentum = 0.1
-C.pretrained_model = "/home/ai/ai/abs/Pytorch-UNet/dfn/base_model/resnet101_v1c.pth"
+C.pretrained_model = "resnet101_v1c.pth"
 
 """Train Config"""
 C.lr = 1e-2

@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from engine.logger import get_logger
+from dfn.engine.logger import get_logger
 
 logger = get_logger()
 

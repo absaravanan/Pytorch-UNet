@@ -1,2 +1,6 @@
 python3 predict.py -i /home/ai/ai/data/coco/images/train2014/3aFQLpDvLyDWxbRNbX7YvUM2uI0q5YzGqRrAWTcQJHsO78qr0E.jpg \
  --viz --no-save --cpu --model /home/ai/ai/abs/Pytorch-UNet/checkpoints/CP2.pth
+
+
+python3 predict_bisenet.py -i /media/bubbles/fecf5b15-5a64-477b-8192-f8508a986ffe/ai/abs/aadhaar_mask/val/images/0a1jfSWHLB0xrDfVjt99bgbmIAnF5ytFBA9oSZVX5cJCkUtlE7.jpg \
+ --viz --no-save --cpu --model /media/bubbles/fecf5b15-5a64-477b-8192-f8508a986ffe/ai/abs/Pytorch-UNet/checkpoints/CP1_2505.pth

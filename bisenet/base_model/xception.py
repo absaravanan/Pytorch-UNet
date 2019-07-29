@@ -1,8 +1,8 @@
 from __future__ import print_function, division, absolute_import
 import torch.nn as nn
 
-from seg_opr.seg_oprs import ConvBnRelu
-from utils.pyt_utils import load_model
+from dfn.seg_opr.seg_oprs import ConvBnRelu
+from dfn.utils.pyt_utils import load_model
 
 __all__ = ['Xception', 'xception39']
 

@@ -171,7 +171,6 @@ class AttentionRefinement(nn.Module):
         fm = self.conv_3x3(x)
         fm_se = self.channel_attention(fm)
         fm = fm * fm_se
-
         return fm
 
 

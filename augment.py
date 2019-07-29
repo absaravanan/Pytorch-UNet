@@ -4,8 +4,8 @@ import imutils
 from random import randint
 import random
 
-root = "/home/ai/ai/data/coco/aadhaar_mask/train/"
-target_dir = "/home/ai/ai/data/coco/aadhaar_mask_augmented/train/"
+root = "/media/bubbles/fecf5b15-5a64-477b-8192-f8508a986ffe/ai/abs/aadhaar_mask/train/"
+target_dir = "/media/bubbles/fecf5b15-5a64-477b-8192-f8508a986ffe/ai/abs/aadhaar_aug_mask/"
 
 for r, d, f in os.walk(root+"images"):
     for file in f:

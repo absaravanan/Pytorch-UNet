@@ -28,18 +28,16 @@ from bisenet.network import BiSeNet
 
 def train_net(net,
               epochs=5,
-              batch_size=1,
+              batch_size=2,
               lr=3e-5,
               val_percent=0.05,
               save_cp=True,
               gpu=False,
               img_scale=0.5):
 
-    dir_img = '/home/ai/ai/data/coco/aadhaar_mask_augmented/train/images/'
-    dir_mask = '/home/ai/ai/data/coco/aadhaar_mask_augmented/train/annotations/'
+    dir_img = '/media/bubbles/fecf5b15-5a64-477b-8192-f8508a986ffe/ai/abs/aadhaar_aug_mask/images/'
+    dir_mask = '/media/bubbles/fecf5b15-5a64-477b-8192-f8508a986ffe/ai/abs/aadhaar_aug_mask/annotations/'
     dir_checkpoint = 'checkpoints/'
-
-    
 
     ids = get_ids(dir_img)
     # print ("ids length", ids)
@@ -67,8 +65,8 @@ def train_net(net,
     #                       weight_decay=0.0005)
 
     # criterion = nn.BCELoss()
-    min_kept = int(config.batch_size // len(
-        engine.devices) * config.image_height * config.image_width // 16)
+    min_kept = int(config.batch_size // 1 * config.image_height * config.image_width // 16)
+
     criterion = ProbOhemCrossEntropy2d(ignore_label=255, thresh=0.7,
                                        min_kept=min_kept,
                                        use_weight=False)
@@ -124,12 +122,15 @@ def train_net(net,
         val = get_imgs_and_masks(iddataset['val'], dir_img, dir_mask, img_scale)
 
         epoch_loss = 0
+        samples_Covered = 0
 
         for i, b in enumerate(batch(train, batch_size)):
             # print ([i[0].shape for i in b])
             # print ([i[1].shape for i in b])
             optimizer.zero_grad()
-
+            # print (len(b))
+            if len(b) == 1:
+                break
             imgs = np.array([i[0] for i in b]).astype(np.float32)
             true_masks = np.array([i[1] for i in b])
             # cgts = np.array([i[2] for i in b])
@@ -146,14 +147,13 @@ def train_net(net,
             # masks_pred = net(imgs)
 
             loss = model(imgs, true_masks.long())
-
-            current_idx = epoch * config.niters_per_epoch + idx
+            current_idx = epoch * config.niters_per_epoch + epoch
             lr = lr_policy.get_lr(current_idx)
 
-            for i in range(2):
-                optimizer.param_groups[i]['lr'] = lr
-            for i in range(2, len(optimizer.param_groups)):
-                optimizer.param_groups[i]['lr'] = lr * 10
+            for j in range(2):
+                optimizer.param_groups[j]['lr'] = lr
+            for j in range(2, len(optimizer.param_groups)):
+                optimizer.param_groups[j]['lr'] = lr * 10
                            
             loss.backward()
             optimizer.step()
@@ -166,6 +166,13 @@ def train_net(net,
             epoch_loss += loss.item()
 
             print('{0:.4f} --- loss: {1:.6f}'.format(i * batch_size / N_train, loss.item()))
+            samples_Covered += 5
+            if samples_Covered > 2500:
+                torch.save(net.state_dict(),
+                        dir_checkpoint + 'CP{}_{}.pth'.format(epoch + 1, samples_Covered))
+                print('Checkpoint {} saved !'.format(epoch + 1))                
+                samples_Covered = 0
+
 
             # optimizer.zero_grad()
             # loss.backward()
@@ -188,7 +195,7 @@ def get_args():
     parser = OptionParser()
     parser.add_option('-e', '--epochs', dest='epochs', default=5, type='int',
                       help='number of epochs')
-    parser.add_option('-b', '--batch-size', dest='batchsize', default=5,
+    parser.add_option('-b', '--batch-size', dest='batchsize', default=6,
                       type='int', help='batch size')
     parser.add_option('-l', '--learning-rate', dest='lr', default=0.1,
                       type='float', help='learning rate')

@@ -1,7 +1,7 @@
 import functools
 import torch.nn as nn
 
-from utils.pyt_utils import load_model
+from dfn.utils.pyt_utils import load_model
 
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
